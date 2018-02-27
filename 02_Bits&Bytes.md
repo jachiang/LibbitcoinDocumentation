@@ -1,4 +1,4 @@
-#### 0.2 Working with Binary Data in Libbitcoin
+# 0.2 Working with Binary Data in Libbitcoin
 
 The Libbitcoin Library API is designed to abstract away Bitcoin's binary formats into intuitive classes and methods which are intended to behave similarly to frequently documented constructs (e.g. transactions, signatures and wallets) used to explain and describe how Bitcoin works.
 
@@ -6,7 +6,7 @@ Ultimately, however, the Bitcoin protocol is only formalised at the binary level
 
 Therefore, understanding how binary data is handled in Libbitcoin will be helpful during the study of later topics.
 
-##### A) Fixed-length Binary Data
+## A) Fixed-length Binary Data
 
 We will use the Bitcoin public key point to illustrate fixed-length byte object handling in Libbitcoin. A compressed public key is illustrated below.
 
@@ -34,7 +34,7 @@ using byte_array = std::array<uint8_t, 33u>
 ```
 As you can see in the code example above, fixed-length binary in Libbitcoin is commonly compiled down to `std::array<uint8_t, Size>`, with each array element containing 1 byte. This c++ STL class has fixed memory allocation, which avoids additional memory overhead and furthermore helps Libbitcoin enforce specific Bitcoin binary format lengths! You will therefore rarely use the `byte_array` class directly, but rather a type alias named after specific Bitcoin format (private keys, public key hash, merkle root etc.)
 
-##### B) Dynamic-length Binary Data
+## B) Dynamic-length Binary Data
 
 There are also many examples in Bitcoin where a data format may vary in length. In such cases, the Libbitcoin type `bc::data_chunk` is frequently used. We use the HD Wallet `Entropy` binary format as an example.
 
@@ -72,7 +72,7 @@ pseudo_random_fill(myArray); //not ok
 //so we explicitly convert with our helper fct
 pseudo_random_fill(to_chunk(myArray)) //ok
 ```  
-##### C) Wrappers for Byte Containers:
+## C) Wrappers for Byte Containers:
 Finally, Libbitcoin provides a convenient wrapper for byte containers called `data_slice`, which can be instantiated with any type of iterable byte container, such as `bc::byte_array`, or `bc::data_chunk`.
 
 One especially useful property of `data_slice` is that they can be instantiated with a single byte container argument:
