@@ -87,7 +87,7 @@ data_chunk myChunk = {0, 1, 2, 3};
 data_slice dataSlice1(myChunk); //ok
 
 //error: different underlying classes in wrapper
-std::cout << (dataSlice2 == dataSlice3);
+std::cout << (dataSlice0 == dataSlice1);
 
 ```
 In the last example above, we can infer that the `data_slice` wrapper is compiled to the type of the input argument it is instantiated with, so that no conversion takes place.
