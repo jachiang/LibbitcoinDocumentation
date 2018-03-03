@@ -1,4 +1,4 @@
-# Working with Binary Data in Libbitcoin
+# Working with Binary Data
 
 The Libbitcoin Library API is designed to abstract away Bitcoin's binary formats into intuitive classes and methods which are intended to behave similarly to frequently documented constructs (e.g. transactions, signatures and wallets) used to explain and describe how Bitcoin works.
 
@@ -157,6 +157,6 @@ array_slice(const data_chunk& container);
 ```
 
 
-[**Next** -- Elliptic Curve Math](https://github.com/libbitcoin/libbitcoin/wiki)  
+[**Next** -- Elliptic Curve Operations and Signing Math](https://github.com/libbitcoin/libbitcoin/wiki)  
 [**Previous** -- Getting Started with Libbitcoin (System) ](https://github.com/libbitcoin/libbitcoin/wiki)  
 [**Return to Index**](https://github.com/libbitcoin/libbitcoin/wiki)
