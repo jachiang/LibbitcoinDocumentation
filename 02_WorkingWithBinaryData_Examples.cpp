@@ -35,9 +35,14 @@ void example3() {
   //yet byte_array isn't implicitly converted to data_chunk
   //pseudo_random_fill(myArray); //not ok
 
-  //so we explicitly convert with our helper fct
+  //So we explicitly convert with our helper fct
   data_chunk myChunk = to_chunk(myArray);
   pseudo_random_fill(myChunk); //ok
+
+  //We can transform myChunk back to a byte_array
+  byte_array<arraySize> myArray2;
+  myArray2 = to_array<arraySize>(myChunk);
+
 }
 
 void example4() {
@@ -53,15 +58,19 @@ void example4() {
 
 int main() {
 
+  std::cout << "Example 1: " << "\n";
   example1();
   std::cout << "\n";
 
+  std::cout << "Example 2: " << "\n";
   example2();
   std::cout << "\n";
 
+  std::cout << "Example 3: " << "\n";
   example3();
   std::cout << "\n";
 
+  std::cout << "Example 4: " << "\n";
   example4();
   std::cout << "\n";
 
