@@ -16,16 +16,15 @@ A private key is randomly generated to prevent any external party from reconstru
 
 **Example 1**
 ```c++
-//Generate 256 bit entropy.
-data_chunk myEntropy(ec_secret_size); //256bits
-pseudo_random_fill(myEntropy);
+//Generate 256 bits of entropy.
+data_chunk my_entropy(ec_secret_size); //256bits
+pseudo_random_fill(my_entropy);
 
-//Construct private key with Entropy
-ec_secret mySecret; //256bit byte_array
-mySecret = to_array<ec_secret_size>(myEntropy);
+//Instantiate private key with 256 bits of Entropy
+auto my_secret = to_array<ec_secret_size>(my_entropy);
 
 //Not all possible 256bits are member of Fp
-std::cout << verify(mySecret);
+std::cout << verify(my_secret);
 ```
 
 We can also add and multiply scalar values of the field `Fp` with `ec_add` and `ec_multiply`. Both operations are commutative.
@@ -33,22 +32,22 @@ We can also add and multiply scalar values of the field `Fp` with `ec_add` and `
 **Example 2**
 ```c++
 //Two scalar values which are members of Fp
-ec_secret myScalar1 = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
-ec_secret myScalar2 = base16_literal("04c294ab836b61955e762547c561a45e4be88984dca06da959d47bf880fd92f4");
+auto my_scalar1 = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
+auto my_scalar2 = base16_literal("04c294ab836b61955e762547c561a45e4be88984dca06da959d47bf880fd92f4");
 
 //Commutative addition:
-ec_secret myScalar1_add(myScalar1);
-ec_secret myScalar2_add(myScalar2);
-ec_add(myScalar1_add, myScalar2);  //myScalar1_add += myScalar2 % p
-ec_add(myScalar2_add, myScalar1);  //myScalar2_add += myScalar1 % p
-std::cout << (myScalar1_add == myScalar2_add);
+ec_secret my_scalar1_add(my_scalar1);
+ec_secret my_scalar2_add(my_scalar2);
+ec_add(my_scalar1_add, my_scalar2);  //my_scalar1_add += my_scalar2 % p
+ec_add(my_scalar2_add, my_scalar1);  //my_scalar2_add += my_scalar1 % p
+std::cout << (my_scalar1_add == my_scalar2_add);
 
 //Commutative multiplication:
-ec_secret myScalar1_mul(myScalar1);
-ec_secret myScalar2_mul(myScalar2);
-ec_add(myScalar1_mul, myScalar2);  //myScalar1_mul *= myScalar2 % p
-ec_add(myScalar2_mul, myScalar1);  //myScalar2_mul *= myScalar1 % p
-std::cout << (myScalar1_mul == myScalar2_mul);
+ec_secret my_scalar1_mul(my_scalar1);
+ec_secret my_scalar2_mul(my_scalar2);
+ec_add(my_scalar1_mul, my_scalar2);  //my_scalar1_mul *= my_scalar2 % p
+ec_add(my_scalar2_mul, my_scalar1);  //my_scalar2_mul *= my_scalar1 % p
+std::cout << (my_scalar1_mul == my_scalar2_mul);
 ```
 ## Generating Public Key Points
 
@@ -74,20 +73,20 @@ We will use the uncompressed format in our following examples to generate a Bitc
 **Example 3**
 ```c++
 //Private Key
-ec_secret mySecret = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
+auto my_secret = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
 
 //The secp256k1 Generator Point
-ec_compressed pointGen = base16_literal("0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798");
+auto gen_point = base16_literal("0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798");
 
 //Manually generating the public key
-ec_compressed myPubKey_compressed(pointGen);
-ec_multiply(myPubKey_compressed,mySecret);
+ec_compressed my_pubkey_compressed(gen_point);
+ec_multiply(my_pubkey_compressed,my_secret);
 
 //Better: Using helper fct to generate the public key
-ec_compressed myPubKey2;
-secret_to_public(myPubKey2, mySecret);
+ec_compressed my_pubkey2;
+secret_to_public(my_pubkey2, my_secret);
 
-std::cout << (myPubKey_compressed == myPubKey2);
+std::cout << (my_pubkey_compressed == my_pubkey2);
 ```
 
 **Associativity of EC operators**  
@@ -103,19 +102,19 @@ The Libbitcoin type `ec_signature` is a `byte_array<64u>` container which holds 
 **Example 4 (Part 1)**
 ```c++
 //Hash of an arbitrary msg
-byte_array<32u> msg = base16_literal("04c294ab836b61955e762547c561a45e4be88984dca06da959d47bf880fd92f4");
-hash_digest myHash = bitcoin_hash(msg);
+auto msg = base16_literal("04c294ab836b61955e762547c561a45e4be88984dca06da959d47bf880fd92f4");
+hash_digest my_hash = bitcoin_hash(msg);
 
 //My private & public keys
-ec_secret mySecret = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
-ec_compressed myPubKey = base16_literal("02b974a3e9fe9ce1ca7f9bb86c114567a51cd8deb7157aeabcce46eb6138c3a1b3");
+auto my_secret = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
+auto my_pubkey = base16_literal("02b974a3e9fe9ce1ca7f9bb86c114567a51cd8deb7157aeabcce46eb6138c3a1b3");
 
 //Sign hash of TX with my private key
-ec_signature mySignature; //r,s
-sign(mySignature, mySecret, myHash);
+ec_signature my_signature; //r,s
+sign(my_signature, my_secret, my_hash);
 
 //Verify Signature
-std::cout << verify_signature(myPubKey, myHash, mySignature);
+std::cout << verify_signature(my_pubkey, my_hash, my_signature) << "\n";
 ```
 Although we have now correctly signed the serialised TX message and produced a valid signature `r,s`, it still needs to be represented in a valid DER serialisation format to be accepted on the Bitcoin network.  
 
@@ -133,12 +132,12 @@ In Libbitcoin, the serialised DER signature is contained by the `der_signature` 
 
 **Example 4 (Part 2)**
 ```c++
-//Format mySignature (r,s) as a DER signature sequence
-der_signature myDerSignature;
-encode_signature(myDerSignature, mySignature);
+//Format my_signature (r,s) as a DER signature sequence
+der_signature my_der_signature;
+encode_signature(my_der_signature, my_signature);
 
 //DER Signature Format (Strict DER Signature)
-std::cout << encode_base16(myDerSignature);
+std::cout << encode_base16(my_der_signature);
 ```
 **Strict DER Signatures (BIP66)**  
 Bitcoin implementations have relied on OpenSSL for signing and verification in DER formats, although OpenSSL releases have deviated from the strict DER standard.
@@ -149,9 +148,9 @@ We can use a simple parser function to ensure a DER signature adheres to strict 
 
 **Example 4 (Part 3)**
 ```c++
-//Extract r,s values from myDerSignature
+//Parse r,s values from my_der_signature
 //Strict enforcement of DER = true
-parse_signature(mySignature, myDerSignature, true);
+parse_signature(my_signature, my_der_signature, true);
 ```
 
 ## Recoverable Signatures
@@ -161,15 +160,16 @@ Given `r,s` and an index `i` ranging from 0 to 3, it is therefore possible to un
 
 **Example 4 (Part 4)**
 ```c++
-recoverable_signature myRecoverableSig;
-sign_recoverable(myRecoverableSig, mySecret, myHash);
-std::cout << unsigned(myRecoverableSig.recovery_id);
+recoverable_signature my_recoverable_sig;
+sign_recoverable(my_recoverable_sig, my_secret, my_hash);
+//Conversion: uint8_t->unsigned int for visible ASCII output
+std::cout << unsigned(my_recoverable_sig.recovery_id);
 
 //recover public key from recoverable signature
-ec_compressed recoveredSig;
-recover_public(recoveredSig, myRecoverableSig, myHash);
+ec_compressed recovered_sig;
+recover_public(recovered_sig, my_recoverable_sig, my_hash);
 
-std::cout << (recoveredSig == myPubKey);
+std::cout << (recovered_sig == my_pubkey);
 ```
 
 Recoverable Signatures are used in message signing by Bitcoin wallets to prove control over a given Bitcoin address.

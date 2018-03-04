@@ -23,8 +23,8 @@ In Libbitcoin, the compressed publicKey is represented by the class `ec_compress
 **Example 1**
 ```c++
 //Let us declare a compressed pubKey in Libbitcoin
-ec_compressed myPubKey;
-std::cout << myPubKey.size(); // 33
+ec_compressed my_pubkey;
+std::cout << my_pubkey.size(); // 33
 ```
 Let us have a closer look at how the fixed-length `ec_compressed` type is defined and instantiated.
 
@@ -76,12 +76,12 @@ We can generate variable entropy lengths with the libbitcoin type `data_chunk` a
 **Example 2**
 ```c++
 //data_chunks can contain entropy of various sizes
-data_chunk myEntropy16(16);      //128bits allocated
-data_chunk myEntropy32(32);      //256bits allocated
+data_chunk my_entropy_16(16);      //128bits allocated
+data_chunk my_entropy_32(32);      //256bits allocated
 
-//We can now fill our data_chunk with random bits
-pseudo_random_fill(myEntropy16); //128bit entropy
-pseudo_random_fill(myEntropy32); //256bit entropy
+//we can now fill our data_chunk with random bits
+pseudo_random_fill(my_entropy_16); //128bit entropy
+pseudo_random_fill(my_entropy_32); //256bit entropy
 ```
 The `data_chunk` is a type alias of the `std::vector<uint8_t>` container from the standard STL library.
 
@@ -97,20 +97,20 @@ On the other hand, `to_array<Size>` will help you transform a `data_chunk` to a 
 **Example 3**
 ```c++
 //Let's declare a byte_array of 16 bytes in memory
-constexpr size_t arraySize = 16;
-byte_array<arraySize> myArray;
+constexpr size_t ArraySize = 16;
+byte_array<ArraySize> my_array;
 
 //pseudo_random_fill expects a data_chunk type input
 //yet byte_array isn't implicitly converted to data_chunk
-pseudo_random_fill(myArray); //not ok
+pseudo_random_fill(my_array); //not ok
 
 //So we explicitly convert with our helper fct
-data_chunk myChunk = to_chunk(myArray);
-pseudo_random_fill(myChunk); //ok
+data_chunk my_chunk = to_chunk(my_array);
+pseudo_random_fill(my_chunk); //ok
 
-//We can transform myChunk back to a byte_array
-byte_array<arraySize> myArray2;
-myArray2 = to_array<arraySize>(myChunk);
+//We can transform my_chunk back to a byte_array
+byte_array<ArraySize> my_array2;
+my_array2 = to_array<ArraySize>(my_chunk);
 ```  
 
 ## Passing Byte Containers as Arguments:
@@ -129,13 +129,13 @@ short_hash bitcoin_short_hash(data_slice data);
 
 **Example 4**
 ```c++
-byte_array<4u> myArray {{0, 1, 2, 3}};
-data_chunk myChunk {0, 1, 2, 3};
+byte_array<4u> my_array {{0, 1, 2, 3}};
+data_chunk my_chunk {0, 1, 2, 3};
 
-auto firstHash = bitcoin_short_hash(myArray);  //ok
-auto secondHash = bitcoin_short_hash(myChunk); //ok
+auto first_hash = bitcoin_short_hash(my_array);  //ok
+auto second_hash = bitcoin_short_hash(my_chunk); //ok
 
-std::cout << (firstHash == secondHash); //True
+std::cout << (first_hash == second_hash); //True
 ```
 
 A closer look at `data_slice` reveals that it is a type alias of `array_slice<uint8_t>`, which has a single argument constructor used by the compiler for implicit conversion from other iterable byte containers.
