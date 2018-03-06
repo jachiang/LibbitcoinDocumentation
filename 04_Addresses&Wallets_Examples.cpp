@@ -70,7 +70,6 @@ void example1() {
 }
 
 
-
 void example2() {
   //******* part 1 *******
 
@@ -83,45 +82,11 @@ void example2() {
   word_list my_word_list = create_mnemonic(my_entropy_128);
   std::cout << join(my_word_list) << std::endl;
 
-  //******* part 2 *******
-
-
-
-
-
-
-
-  //Create 512bit seed
-  auto hd_seed = decode_mnemonic(my_word_list); //no passphrase string?
-
-  //prefix is concat of mainnet prefixes of both private and public
-  uint64_t main_prefix = uint64_t(76066276) << 32 | uint64_t(76067358);
-  // = hd_private::mainnet;
-
-  //Create hd_private wallet
-  auto my_hd_private = hd_private(to_chunk(hd_seed),main_prefix);
-
-  //Mainnet: 0x0488B21E/76067358 public, 0x0488ADE4/76066276 private; testnet: 0x043587CF public, 0x04358394 private)
-  std::cout << my_hd_private.encoded() << "\n"; //WIF -> xprv
-  std::cout << encode_base16(my_hd_private.to_hd_key()) << "\n"; //82bytes = 656 bits
-
-  //[ prefix ][ depth ][ parent fingerprint ][ key index ][ chain code ][ key ]
-  // auto prefix = base16_literal("0488ADE4");
-  // auto depth = base16_literal("00");
-  // auto par_fingerprint = base16_literal("00000000"); //4 bytes of hash160 of parent
-  // auto key_index = base16_literal("00000000"); //max FFFFFFFF
-
-  //child private key
-  uint32_t hd_first_hardened_key = 1 << 31;
-  auto m0h = my_hd_private.derive_private(hd_first_hardened_key); //hd_first_hardened_key is
-
-  //child public key key
-  //check out the tests
-
 }
 
 
 void example3() {
+
   //******* part 1 *******
 
   //Load mnemonic sentence into word list
@@ -134,8 +99,9 @@ void example3() {
   //Create 512bit seed
   auto hd_seed = decode_mnemonic(my_word_list); //no passphrase string?
 
+
   //******* part 2 *******
-  
+
   //We reuse 512 bit hd_seed from the previous example
   //To derive master private key m
   data_chunk seed_chunk(to_chunk(hd_seed));
@@ -145,6 +111,122 @@ void example3() {
   hd_public M = m.to_public();
 
   //EXPORT WIF FORMATS
+
+
+  //******* part 3 *******
+
+  //Derive private children of master key m
+  auto m0 = m.derive_private(0); //Depth 1, Index 0
+  auto m1 = m.derive_private(1); //Depth 1, Index 1
+  auto m2 = m.derive_private(2); //Depth 1, Index 2
+
+  //Derive further private children
+  auto m10 = m1.derive_private(0); //Depth 2, Index 0
+  auto m11 = m1.derive_private(1); //Depth 2, Index 1
+  auto m12 = m1.derive_private(2); //Depth 2, Index 2
+  auto m100 = m10.derive_private(0); //Depth 3, Index 0
+  auto m101 = m10.derive_private(1); //Depth 3, Index 1
+  auto m102 = m10.derive_private(2); //Depth 3, Index 1
+
+  //Derive child public key
+  auto M00 = m0.derive_public(0); //Depth 2, Index 0
+  auto M01 = m0.derive_public(1); //Depth 2, Index 1
+  auto M02 = m0.derive_public(2); //Depth 2, Index 2
+  //...
+
+  //Derive hd_public of any hd_private object
+  //of same depth & index
+  auto M102 = m102.to_public();
+
+
+  //******* part 4 *******
+
+  //Derive public children of master key M
+  auto M0 = M.derive_public(0); //Depth 1, Index 0
+  auto M1 = M.derive_public(1); //Depth 1, Index 1
+  auto M2 = M.derive_public(2); //Depth 1, Index 2
+
+  //Derive further public children
+  auto M10 = M1.derive_public(0); //Depth 2, Index 0
+  auto M11 = M1.derive_public(1); //Depth 2, Index 1
+  auto M12 = M1.derive_public(2); //Depth 2, Index 2
+  auto M100 = M10.derive_public(0); //Depth 3, Index 0
+  auto M101 = M10.derive_public(1); //Depth 3, Index 1
+  //...
+
+  //No private children can be derived
+  //from child public keys!
+
+
+}
+
+void example4() {
+
+  //Load mnemonic sentence into word list
+  std::string my_sentence = "market parent marriage drive umbrella custom leisure fury recipe steak have enable";
+  auto my_word_list = split(my_sentence, " ", true);
+  //Create an optional secret passphrase
+  std::string my_passphrase = "my secret passphrase";
+  //Create 512bit seed
+  auto hd_seed = decode_mnemonic(my_word_list); //no passphrase string?
+  data_chunk seed_chunk(to_chunk(hd_seed));
+
+
+  //******* part 1 *******
+
+  //Versions prefix for both private and public keys
+  //hd_private::mainnet = 0x0488ADE40488B21E
+  hd_private m(seed_chunk, hd_private::mainnet);
+  auto m1 = m.derive_private(1);
+
+  //Public key mainnet prefix 0488B21E
+  //is implicitly passed on to hd_public M
+  hd_public M = m1.to_public();
+
+  //XPRV: m serialised as extended private key
+  auto m1_xprv = m1.to_hd_key();
+
+  //4 Bytes: Version in hex
+  auto m1_xprv_ver = slice<0,4>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_ver) << std::endl;
+
+  //1-Byte: Depth
+  auto m1_xprv_depth = slice<4,5>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_depth) << std::endl;
+
+  //4-Bytes: Parent Fingerprint
+  auto m1_xprv_parent = slice<5,9>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_parent) << std::endl;
+
+  //4-Bytes: Index Number
+  auto m1_xprv_index = slice<9,13>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_index) << std::endl;
+
+  //32-Bytes: Chain Code
+  auto m1_xprv_chaincode = slice<13,45>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_chaincode) << std::endl;
+
+  //34-Bytes: Private Key (with 0x00 prefix)
+  auto m1_xprv_private = slice<45,78>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_private) << std::endl;
+
+  //4-Bytes: double sha256 checksum
+  auto m1_xprv_checksum = slice<78,82>(m1_xprv);
+  std::cout << encode_base16(m1_xprv_checksum) << std::endl;
+
+  // //checksum test
+  // auto checksum_test = slice<0,78>(m1_xprv);
+  // auto checksum_test_slice = to_chunk(checksum_test);
+  // append_checksum(checksum_test_slice);
+  // auto rest = slice<78,82>(to_array<82>(checksum_test_slice));
+  // std::cout << encode_base16(rest) << std::endl;
+
+
+  //******* part 2 *******
+
+  auto m0 = m.derive_private(0);
+  auto m00h = 
+
 
 }
 
@@ -159,5 +241,14 @@ int main() {
   example2();
   std::cout << "\n";
 
+  std::cout << "Example 3: " << "\n";
+  example3();
+  std::cout << "\n";
+
+  std::cout << "Example 4: " << "\n";
+  example4();
+  std::cout << "\n";
+
 return  0;
+
 }

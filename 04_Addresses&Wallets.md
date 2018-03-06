@@ -10,7 +10,8 @@ As illustrated above, the public key in its compressed or uncompressed form is f
 
 ```c++
 //Namespace
-using namespace bc, wallet;
+using namespace bc;
+using namespace wallet;
 ```
 <!-- Example 1 -->
 ```c++
@@ -34,7 +35,7 @@ append_checksum(prefix_pubkey_checksum);
 //Base58 encode byte sequence -> Bitcoin Address
 std::cout << encode_base58(prefix_pubkey_checksum);
 ```
-Note: Libbitcoin wallet types `ec_private` & `ec_public` feature methods which directly produce Bitcoin addresses and will be documented in the next section.
+In the next section we will cover Libbitcoin wallet types `ec_private` & `ec_public` feature methods which directly format Bitcoin addresses from secrets and public key points.
 
 ## A Basic Bitcoin Wallet
 Now that we have created a public Bitcoin address from a private key secret, let us consider how a private key can be universally imported & exported from a wallet, independent of implementation, whilst maintaining the ability to derive the publicly shared Bitcoin address.
@@ -68,7 +69,11 @@ append_checksum(prefix_secret_comp_checksum);
 //WIF (mainnet/compressed)
 std::cout << encode_base58(prefix_secret_comp_checksum);
 ```
-The WIF can easily be imported into any wallet, and provides all the information for its unique Bitcoin address to be derived. In Libbitcoin, we can use the class `ec_private` to store a private key and necessary information to derive a unique Bitcoin address or export the private key in WIF form.
+The WIF can easily be imported into any wallet, and provides all the information for its unique Bitcoin address to be derived.  
+
+**Libbitcoin Wallet Types `ec_private`, `ec_public`**
+
+In Libbitcoin, we can use the class `ec_private` to store a private key and necessary information to derive a unique Bitcoin address or export the private key in WIF form.
 <!-- Example 1 (part3) -->
 ```c++
 //ec_private::mainnet = 0x8000 (Mainnet Prefixes 0x80,0x00)
@@ -100,8 +105,6 @@ std::cout << my_addr.encoded() << "\n";
 ```
 
 ## Mnemonic Code Words
-
-
 
 The seed of a wallet can be
 This secret can range from 128 to 256 bits in 32bit increments, and together with its checksum, can be expressed in a mnemonic word list, with each word representing 11-bits each.
@@ -155,10 +158,12 @@ This root seed can have a length of 128, 256 or 512 bits. The 512 bit lengthened
 The HD root seed is then hashed by the `HMAC-SHA512` algorithm to create a
 512 bit digest, which is used in two separate parts:
 
-* First 256 bits: **Master Private key**
-* Second 256 bits: **Master Chain Code**
+* First 256 bits: Master Private key
+* Second 256 bits: Master Chain Code
 
 <!-- Illustration of HD key generation -->
+
+**Libbitcoin HD Wallet Types: `hd_private`, `hd_public`**
 
 Libbitcoin provides us with the `hd_private` type to instantiate the master private key. We can call a `hd_private` method to derive a `hd_public` object which contains the master public key.
 <!-- Example 3 (part 2) -->
@@ -178,9 +183,9 @@ Both types have methods to derive child keys described in subsequent sections of
 ### Child Private Keys
 
 The `HMAC-SHA512` is used to create child private keys with the following inputs:  
-* 256 bit **Parent Private Key**
-* 256 bit **Parent Chain Code**
-* 32 bit **Index Number**  
+* 256 bit Parent Private Key
+* 256 bit Parent Chain Code
+* 32 bit Index Number  
 
 The Index is incremented to generate additional child private key from the same parent private key.  
 
@@ -188,9 +193,30 @@ The Index is incremented to generate additional child private key from the same 
 
 <!-- Illustration of Child Private Key Generation -->
 
+<!-- Example 3 (part 3) -->
 ```c++
-//demo hd_private child derivation
-//derive child public key from private child
+//Derive children of master key m
+auto m0 = m.derive_private(0);
+auto m1 = m.derive_private(1);
+auto m2 = m.derive_private(2);
+
+//Derive further children
+auto m10 = m1.derive_private(0); //Depth 2, Index 0
+auto m11 = m1.derive_private(1); //Depth 2, Index 1
+auto m12 = m1.derive_private(2); //Depth 2, Index 2
+auto m100 = m10.derive_private(0); //Depth 3, Index 0
+auto m101 = m10.derive_private(1); //Depth 3, Index 1
+auto m102 = m10.derive_private(2); //Depth 3, Index 1
+
+//Derive child public key
+auto M00 = m0.derive_public(0); //Depth 2, Index 0
+auto M01 = m0.derive_public(1); //Depth 2, Index 1
+auto M02 = m0.derive_public(2); //Depth 2, Index 2
+//...
+
+//Derive hd_public of any hd_private object
+//of same depth & index
+auto M102 = m102.to_public();
 ```
 Note that we have ....
 
@@ -214,47 +240,93 @@ So now it is possible for child public keys to be generated in a runtime environ
 
 <!-- Illustration of public key generation -->
 
+<!-- Example 3 (part 4) -->
 ```c++
-//demo hd_private child derivation
-//derive child public key from private child
+//Derive public children of master key M
+auto M0 = M.derive_public(0); //Depth 1, Index 0
+auto M1 = M.derive_public(1); //Depth 1, Index 1
+auto M2 = M.derive_public(2); //Depth 1, Index 2
+
+//Derive further public children
+auto M10 = M1.derive_public(0); //Depth 2, Index 0
+auto M11 = M1.derive_public(1); //Depth 2, Index 1
+auto M12 = M1.derive_public(2); //Depth 2, Index 2
+auto M100 = M10.derive_public(0); //Depth 3, Index 0
+auto M101 = M10.derive_public(1); //Depth 3, Index 1
+//...
+
+//No private children can be derived
+//from child public keys!
 ```
 
 ### Extended Private & Public Keys
 
-All information required to generate child private and public keys can be serialised in the extended key format.
+All information required to generate child private and public keys can be serialised in the *extended key format*.
 
 *From left to right:*
 
 * 4-byte **Version**
- * Private Key: *Mainnet(0x0488ADE4)/Testnet(0x04358394 )*
- * Public Key: *Mainnet(0x0488B21E)/Testnet(0x043587CF )*
+ * Private Key: Mainnet(0x0488ADE4)/Testnet(0x04358394 )
+ * Public Key: Mainnet(0x0488B21E)/Testnet(0x043587CF )
 * 1-byte **Depth**
 * 4-byte **Fingerprint of parent**  
  * Hash160 ...
 * 4-byte **Index Number**
 * 32-byte **Parent Chain Code**
+* 34-byte **Key**
+ * Private Key: 0x00 + 32 bytes private key
+ * Public Key: 34 byte compressed public key
+* 4-byte **Checksum**
 
-More extended serialisation details can be found [here](https://github.com/libbitcoin/libbitcoin/wiki).
+More extended serialisation details can be found in  [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki).
 
 We can another, closer look at how we instantiated `hd_private` and `hd_public` objects from our previous example and understand how the extended key information is handled in these types.
 
 ```c++
-//main_prefix argument contains mainnet version prefix
-//for both private and public keys
-hd_private m(seed_chunk, hd_private::main_prefix);
+//Versions prefix for both private and public keys
+//hd_private::mainnet = 0x0488ADE40488B21E
+hd_private m(seed_chunk, hd_private::mainnet);
+auto m1 = m.derive_private(1);
 
-//Derived public key mainnet prefix is now implicit
-hd_public M = m.to_public();
+//Public key mainnet prefix 0488B21E
+//is implicitly passed on to hd_public M
+hd_public M = m1.to_public();
 
 //XPRV: m serialised as extended private key
-std::cout << encode_base16(m.to_hd_key());
+auto m1_xprv = m1.to_hd_key();
 
-//XPUB: M serialised as extended public key
-std::cout << encode_base16(M.to_hd_key());
+//XPRV: Version in hex
+auto m1_xprv_ver = slice<0,4>(m1_xprv);
+std::cout << encode_base16(m1_xprv_ver) << std::endl;
 
-//better to show individual parts of extended keys
+//XPRV: Depth
+auto m1_xprv_depth = slice<4,5>(m1_xprv);
+std::cout << encode_base16(m1_xprv_depth) << std::endl;
+
+//XPRV: Parent Fingerprint
+auto m1_xprv_parent = slice<5,9>(m1_xprv);
+std::cout << encode_base16(m1_xprv_parent) << std::endl;
+
+//XPRV: Index Number
+auto m1_xprv_index = slice<9,13>(m1_xprv);
+std::cout << encode_base16(m1_xprv_index) << std::endl;
+
+//XPRV: Chain Code
+auto m1_xprv_chaincode = slice<13,45>(m1_xprv);
+std::cout << encode_base16(m1_xprv_chaincode) << std::endl;
+
+//XPRV: Private Key (with 0x00 prefix)
+auto m1_xprv_private = slice<45,78>(m1_xprv);
+std::cout << encode_base16(m1_xprv_private) << std::endl;
+
+//XPRV: Checksum
+auto m1_xprv_checksum = slice<78,82>(m1_xprv);
+std::cout << encode_base16(m1_xprv_checksum) << std::endl;
 ```
 ### Hardened Child Keys
 
 <!-- Illustration of parent key derivation -->
-<!-- Illustration of parent key derivation -->
+
+```c++
+//example code of hardened k
+```
