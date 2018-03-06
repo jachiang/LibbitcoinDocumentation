@@ -13,8 +13,11 @@ All subsequent operations involve either scalar members of the finite field `Fp`
 Let us start with scalar values. A Bitcoin private key is simply a secret scalar value which is a the member of the finite field `Fp`.
 
 A private key is randomly generated to prevent any external party from reconstructing it systematically.
-
-**Example 1**
+```c++
+//Namespace
+using namespace bc;
+```
+<!-- **Example 1** -->
 ```c++
 //Generate 256 bits of entropy.
 data_chunk my_entropy(ec_secret_size); //256bits
@@ -29,7 +32,7 @@ std::cout << verify(my_secret);
 
 We can also add and multiply scalar values of the field `Fp` with `ec_add` and `ec_multiply`. Both operations are commutative.
 
-**Example 2**
+<!-- **Example 2** -->
 ```c++
 //Two scalar values which are members of Fp
 auto my_scalar1 = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
@@ -70,7 +73,7 @@ The *compressed* curve point format has a leading `02/03` byte followed by 32 by
 ```
 We will use the uncompressed format in our following examples to generate a Bitcoin public key curve point from a scalar private key.
 
-**Example 3**
+<!-- **Example 3** -->
 ```c++
 //Private Key
 auto my_secret = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
@@ -99,7 +102,7 @@ Signing a transaction in Bitcoin requires both the private key and the transacti
 
 The Libbitcoin type `ec_signature` is a `byte_array<64u>` container which holds the two signature values `r,s`.
 
-**Example 4 (Part 1)**
+<!-- **Example 4 (Part 1)** -->
 ```c++
 //Hash of an arbitrary msg
 auto msg = base16_literal("04c294ab836b61955e762547c561a45e4be88984dca06da959d47bf880fd92f4");
@@ -130,7 +133,7 @@ Although we have now correctly signed the serialised TX message and produced a v
 
 In Libbitcoin, the serialised DER signature is contained by the `der_signature` type. We will format our signature from the previous example this way.
 
-**Example 4 (Part 2)**
+<!-- **Example 4 (Part 2)** -->
 ```c++
 //Format my_signature (r,s) as a DER signature sequence
 der_signature my_der_signature;
@@ -146,7 +149,7 @@ For example, the DER standard does not allow `r,s` values with first byte values
 
 We can use a simple parser function to ensure a DER signature adheres to strict DER encoding rules.
 
-**Example 4 (Part 3)**
+<!-- **Example 4 (Part 3)** -->
 ```c++
 //Parse r,s values from my_der_signature
 //Strict enforcement of DER = true
@@ -158,7 +161,7 @@ An interesting property of `secp256k1` signatures is that together with the sign
 
 Given `r,s` and an index `i` ranging from 0 to 3, it is therefore possible to uniquely identify the public key used in the signature. The signature and recovery index are contained in the Libbitcoin type `recoverable_signature`.
 
-**Example 4 (Part 4)**
+<!-- **Example 4 (Part 4)** -->
 ```c++
 recoverable_signature my_recoverable_sig;
 sign_recoverable(my_recoverable_sig, my_secret, my_hash);

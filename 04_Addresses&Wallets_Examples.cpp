@@ -7,7 +7,7 @@ using namespace wallet;
 
 void example1() {
   //******* part 1 *******
-
+  //Begin with a private key
   auto my_secret = base16_literal("f3c8f9a6198cca98f481edde13bcc031b1470a81e367b838fe9e0a9db0f5993d");
 
   //Derive pubkey point
@@ -28,6 +28,11 @@ void example1() {
   //Base58 encode byte sequence -> Bitcoin Address
   std::cout << encode_base58(prefix_pubkey_checksum) << std::endl;
 
+  //You can directly generate Bitcoin addresses
+  //with Libbitcoin wallet types: ec_private/ec_public
+  //described in the following section
+
+
   //******* part 2 *******
 
   //WIF encoded private key
@@ -45,7 +50,7 @@ void example1() {
   std::cout << encode_base58(prefix_secret_comp_checksum) << std::endl;
 
   //******* part 3 *******
-
+  //Instantiate ec_private object
   //ec_private::mainnet = 0x8000 (Mainnet Prefixes 0x80,0x00)
   //ec_private::testnet = 0xEF6F (Testnet Prefixes 0xEF,0x6F)
   ec_private my_private(my_secret, ec_private::mainnet, true);
@@ -55,17 +60,19 @@ void example1() {
   //******* part 4 *******
 
   //ec_public from ec_private
-  //(network/compression implied from ec_private input)
+  //(compression implied from ec_private input)
   ec_public my_public(my_private);
 
   //ec_public from point
-  //(network/compression not implied, supplied as arguments)
+  //(compression not implied, supplied as arguments)
   ec_public my_public2(my_pubkey, true); //compression = true
 
-  //Create payment_address from ec_public
-  //(network argument supplied here)
-  payment_address my_addr = my_public.to_payment_address(0x00); //0x00, 0x6f
-  std::cout << my_addr.encoded() << std::endl;
+  //Payment addresses:
+  //Will always default to mainnet if no argument supplied
+  //regardless of version in ec_private constructor argument
+  payment_address my_addr = my_public.to_payment_address();
+  payment_address my_addr2 = my_public2.to_payment_address(); //0x00, 0x6f
+  std::cout << (my_addr.encoded() == my_addr2.encoded()) << std::endl;
 
 }
 
@@ -74,13 +81,13 @@ void example2() {
   //******* part 1 *******
 
   //128, 160, 192, 224, 256 bits of Entropy are valid
-  //Generate 128 bits of Entropy
-  data_chunk my_entropy_128(16); //16 bytes
+  //We generate 128 bits of Entropy
+  data_chunk my_entropy_128(16); //16 bytes = 128 bits
   pseudo_random_fill(my_entropy_128);
 
   //Instantiate mnemonic word_list
   word_list my_word_list = create_mnemonic(my_entropy_128);
-  std::cout << join(my_word_list) << std::endl;
+  std::cout << join(my_word_list) << std::endl; //join to a single string with spaces
 
 }
 
@@ -103,24 +110,22 @@ void example3() {
   //******* part 2 *******
 
   //We reuse 512 bit hd_seed from the previous example
-  //To derive master private key m
+  //Derivation of master private key m
   data_chunk seed_chunk(to_chunk(hd_seed));
   hd_private m(seed_chunk, hd_private::mainnet);
 
-  //We now derive master public key M
+  //Derivation of master public key M
   hd_public M = m.to_public();
-
-  //EXPORT WIF FORMATS
 
 
   //******* part 3 *******
 
-  //Derive private children of master key m
-  auto m0 = m.derive_private(0); //Depth 1, Index 0
-  auto m1 = m.derive_private(1); //Depth 1, Index 1
-  auto m2 = m.derive_private(2); //Depth 1, Index 2
+  //Derive children of master key m
+  auto m0 = m.derive_private(0);
+  auto m1 = m.derive_private(1);
+  auto m2 = m.derive_private(2);
 
-  //Derive further private children
+  //Derive grandchild private keys
   auto m10 = m1.derive_private(0); //Depth 2, Index 0
   auto m11 = m1.derive_private(1); //Depth 2, Index 1
   auto m12 = m1.derive_private(2); //Depth 2, Index 2
@@ -128,7 +133,7 @@ void example3() {
   auto m101 = m10.derive_private(1); //Depth 3, Index 1
   auto m102 = m10.derive_private(2); //Depth 3, Index 1
 
-  //Derive child public key
+  //Derive grandchild public keys
   auto M00 = m0.derive_public(0); //Depth 2, Index 0
   auto M01 = m0.derive_public(1); //Depth 2, Index 1
   auto M02 = m0.derive_public(2); //Depth 2, Index 2
@@ -168,23 +173,24 @@ void example4() {
   //Create an optional secret passphrase
   std::string my_passphrase = "my secret passphrase";
   //Create 512bit seed
-  auto hd_seed = decode_mnemonic(my_word_list); //no passphrase string?
+  auto hd_seed = decode_mnemonic(my_word_list, my_passphrase);
   data_chunk seed_chunk(to_chunk(hd_seed));
 
 
   //******* part 1 *******
-
-  //Versions prefix for both private and public keys
+  //Generate master private key
   //hd_private::mainnet = 0x0488ADE40488B21E
+  //Versions for both private and public keys
   hd_private m(seed_chunk, hd_private::mainnet);
   auto m1 = m.derive_private(1);
 
   //Public key mainnet prefix 0488B21E
-  //is implicitly passed on to hd_public M
+  //is implicitly passed on to M
   hd_public M = m1.to_public();
 
-  //XPRV: m serialised as extended private key
-  auto m1_xprv = m1.to_hd_key();
+  //Extended Private Key:
+  //m1 serialised in extended private key format
+  auto m1_xprv = m.to_hd_key();
 
   //4 Bytes: Version in hex
   auto m1_xprv_ver = slice<0,4>(m1_xprv);
@@ -224,8 +230,19 @@ void example4() {
 
   //******* part 2 *******
 
+  //Hardened private key derivation with index >= 1 << 31
   auto m0 = m.derive_private(0);
-  auto m00h = 
+  auto m00h = m.derive_private(hd_first_hardened_key);
+  auto m01h = m.derive_private(1 + hd_first_hardened_key);
+  auto m02h = m.derive_private(2 + hd_first_hardened_key);
+
+  //Hardened public key can only be derived from private key
+  auto M00h = m00h.to_public();
+  //or from parent private key
+  auto M00h_ = m.derive_public(hd_first_hardened_key);
+  //Above keys are equivalent
+  std::cout << (M00h == M00h_) << std::endl;
+
 
 
 }
