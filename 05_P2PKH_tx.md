@@ -166,7 +166,7 @@ The input signature can endorse an entire transaction with a fixed set of inputs
 | NONE         | 0x02   | Sign all inputs, outputs modifiable |
 | SINGLE       | 0x03   | Sign all inputs and single output, other outputs modifiable |
 
-**Sighash ALL**  
+### Sighash ALL
 
 The illustration below illustrates the signature derivation for an input with the sighash set to `ALL`:
 
@@ -220,7 +220,7 @@ tx.inputs()[1].set_script(my_unlocking_script_1);
 std::cout << encode_base16(tx.to_data()) << std::endl;
 ```
 
-**Sighash NONE**  
+### Sighash NONE
 
 Signing an input with the sighash marker set to `NONE` omits all outputs in the sighash which is signed.
 
@@ -273,7 +273,7 @@ tx.outputs().push_back(output_1); //second output
 std::cout << encode_base16(tx.to_data()) << std::endl;
 ```
 
-**Sighash SINGLE**  
+### Sighash SINGLE
 
 A signature with the sighash marker set to `SINGLE` will only endorse or fix a single output with the same index as the input being signed. All other outputs can be modified later.
 
@@ -327,7 +327,7 @@ tx.outputs().push_back(output_2); //third output
 std::cout << encode_base16(tx.to_data()) << std::endl;
 ```  
 
-**Sighash Modifier: ANYONECANPAY**  
+### Sighash Modifier: ANYONECANPAY
 
 The sighash modifier `ANYONECANPAY` enables inputs to be modified after signing, and can be combined with the previous sighash markers.
 
