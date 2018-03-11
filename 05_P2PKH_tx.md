@@ -1,14 +1,13 @@
 # Building Transactions
 
-Libbitcoin uses type `chain::transactions` to capture all necessary components to build a Bitcoin transaction in its serialised format for transmission on the Bitcoin network.
+Libbitcoin provides the `chain::transactions` type to capture all necessary components to build a Bitcoin transaction in its serialised format for transmission on the Bitcoin network.
 
 <!-- Image of Libbitcoin Transaction classes and subclasses -->
+![Libbitcoin TX](https://ipfs.io/ipfs/Qmf1HPdedXhxTfKy2gYChhXSNvZydaaPdMQbPWpX8tfnd1)
 
-All individual Bitcoin transaction components can be constructed with the Libbitcoin `chain::transaction` type shown above.
+The below table explicitly juxtaposes Bitcoin transaction components and the respective Libbitcoin types contained within `chain::transaction`.
 
-The below table explicitly juxtaposes Bitcoin transaction format components and the respective Libbitcoin types contained within `chain::transaction`.
-
-| TX component             | Libbitcoin Type            |
+| TX component             | Libbitcoin Type                   |
 | -------------------------|-----------------------------------|
 | Version                  | uint32_t                          |
 | Number of inputs         | inputs.size()                     |
@@ -35,9 +34,8 @@ Constructing a Libbitcoin transaction can be as simple as populating a `chain::t
 ```c++
 //Namespace
 using namespace bc;
-using namespace wallet;
-using namespace machine;    //transaction
-using namespace chain;      //inputs, outputs
+using namespace machine;    //opcode
+using namespace chain;      //transaction, inputs, outputs, script
 ```
 <!-- Example 1 (Part 1) -->
 ```c++
@@ -61,11 +59,11 @@ auto serialised_version = to_little_endian(tx.version());
 std::cout << encode_base16(to_chunk(serialised_version));
 ```
 ### Transaction Input(s)
-The inputs represent the unspent uxto's which are to be spent by the transaction. The libbitcoin class `chain::inputs` is a type alias of `std::vector<inputs>`, in which we can push single input uxto's which are intended to be spent.
+The inputs represent the unspent uxto's which are to be spent by the transaction. The libbitcoin class `chain::inputs` is a type alias of `std::vector<inputs>`, to which we can push single input uxto's which are to be added to the transaction.
 
-Each input object requires the previous `transaction hash`, `uxto index`, `input sequence` and unlocking script or `sigScript`. We can add multiple inputs by constructing them individually and then pushing them into the `inputs` vector as demonstrated in the example below.
+Each input object requires the previous `transaction hash`, `uxto index`, `input sequence` and unlocking script or `sigScript`. We can add multiple inputs by constructing them individually and then pushing them into the `inputs` vector.
 
-*Note that we initially omit `sigScripts` in the following example, as the actual transaction (w/o `sigScripts`) is required to produce a sighash that will be signed. This will be detailed in the sighash section below*
+*Note: We initially omit `sigScripts` in the following example, as the actual transaction (w/o `sigScripts`) is required to produce a sighash that will be signed. This will be detailed in the sighash section later in this chapter*
 
 <!-- Example 1 (Part 3) -->
 ```c++
@@ -83,7 +81,7 @@ input input_0;
 input_0.set_previous_output(uxto_tospend_0);
 input_0.set_sequence(0xffffffff);
 
-//Above can be repeated for other spendable inputs
+//Additional input objects can be created for additional inputs
 
 //All input objects can then be added to transaction
 tx.inputs().push_back(input_0);       //first input
@@ -95,7 +93,7 @@ tx.inputs().push_back(input_0);       //first input
 ```
 **Sequence**
 In the example above, the sequence of the uxto is set to the maximum value of `0xffffffff`.
-If transaction `locktime` or the op_code `checklocktimeverify` is required, the sequence is set to a lower value. Sequence values lower than `0XF0000000` are interpreted as having a locktime relative to the age of the input.
+If transaction `locktime` or the opcode `checklocktimeverify` is required, the sequence is set to a lower value, usually to `0xFFFFFFFE`. Sequence values lower than `0XF0000000` are interpreted as having a locktime relative to the age of the input.
 
 ### Transaction Output(s)
 
@@ -114,7 +112,7 @@ std::string btc_amount_string_0 = "1.295";
 uint64_t satoshi_amount_0;
 decode_base10(satoshi_amount_0, btc_amount_string_0, btc_decimal_places); //8 decimals = btc_decimal_places
 
-//Create Output_0 object
+//Create output_0 object
 output output_0(satoshi_amount_0, locking_script_0);
 
 //Above can be repeated for other outputs
@@ -124,9 +122,8 @@ tx.outputs().push_back(output_0);     //first output
 //tx.outputs().push_back(output_1);   //second output
 //tx.outputs().push_back(output_n);   //...nth output
 ```
-**Scripts**
 In the example above, we have utilised the pay-to-public-key-hash template in libbitcoin.
-We can also compose the script using the individual op_codes.
+We can also recreate the script p2pkh using individual opcodes.
 
 <!-- Example 1 (Part 5) -->
 ```c++
@@ -134,8 +131,8 @@ We can also compose the script using the individual op_codes.
 operation::list my_own_p2pkh;
 my_own_p2pkh.push_back(operation(opcode::dup));
 my_own_p2pkh.push_back(operation(opcode::hash160));
-operation my_operation = operation(to_chunk(my_address1.hash()));
-my_own_p2pkh.push_back(my_operation); //includes hash length prefix
+operation op_pubkey = operation(to_chunk(my_address1.hash()));
+my_own_p2pkh.push_back(op_pubkey); //includes hash length prefix
 my_own_p2pkh.push_back(operation(opcode::equalverify));
 my_own_p2pkh.push_back(operation(opcode::checksig));
 
@@ -145,7 +142,7 @@ std::cout << (my_own_p2pkh == locking_script_0) << std::endl;
 
 ### Locktime  
 
-Locktime prevents a valid transaction from being broadcast or mined before a certain time. If the locktime value is nonzero and below 500 million, it represents the blockheight at which the locktime has passed. If the value is 500 million or above, it is interpreted as the Unix Epoch time at which the locktime has passed. The input sequence values for a transaction with active locktime are commonly set to `2^32 - 1` or `0xFFFFFFFE`.
+Locktime prevents a valid transaction from being broadcast or mined before a certain time. If the locktime value is nonzero and below 500 million, it represents the blockheight at which the locktime will complete. If the value is 500 million or above, it is interpreted as the Unix Epoch time at which the locktime will complete. The input sequence values for a transaction with active locktime are commonly set to `2^32 - 1` or `0xFFFFFFFE`.
 
 ### Witness
 
@@ -159,25 +156,25 @@ The scriptSig can only be inserted once we have completed the signature of a has
 
 ## Signing the Transaction Sighash
 
-The transaction is serialised and
+The op_codes `CHECKSIG`, `CHECKSIGVERIFY`, `CHECKMULTISIG`, `CHECKMULTISIGVERIFY` all verify signatures together with an off-stack one-byte sighash argument, which indicates which part of the transaction the signature specifically endorses.  
 
-The sighash is the hash of both the entire serialised transaction and single-byte sighash marker
-
- which are then signed with the private key of the respective uxto.
-
-For each input, the signature can be applied to fixed set of inputs and outputs, so that no modifications can be made, or in way that allows that other inputs and ouputs can be amended to the transaction later.
+The input signature can endorse an entire transaction with a fixed set of inputs and outputs. The signature can also be selectively applied to specific outputs, so the transaction can include further outputs not endorsed by the signature.
 
 | Sighash Type | Marker | Description |
 | -------------|--------| ------------|
-| ALL          | 0x01   | Sign all inputs and outputs         |
+| ALL          | 0x01   | Sign all inputs and outputs |
 | NONE         | 0x02   | Sign all inputs, outputs modifiable |
-| SINGLE       | 0x03   | Sign all inputs, and single output, other outputs modifiable |
+| SINGLE       | 0x03   | Sign all inputs and single output, other outputs modifiable |
 
-**Sighash ALL**
+**Sighash ALL**  
 
-The illustration below illustrates the signature derivation for an input with the Sighash set to `ALL`:
+The illustration below illustrates the signature derivation for an input with the sighash set to `ALL`:
 
-<!-- Illustation of sighash, ALL-->
+![SIGHASH ALL](https://ipfs.io/ipfs/QmbEYaLrNkCV8zHcvvHYPwHDA4f87Zp9w1pkrBMhxAQQWf)
+
+Since the entire transaction is included in the sighash that is signed, we must first construct the complete set of inputs and outputs before the signatures are created.
+
+*Note that for each input signing, we place the previous transaction's scriptPubKey or locking script in the scriptSig field of the respective input*
 
 <!-- Example 2 -->
 ```c++
@@ -222,64 +219,20 @@ tx.inputs()[1].set_script(my_unlocking_script_1);
 //Print out
 std::cout << encode_base16(tx.to_data()) << std::endl;
 ```
-**Sighash NONE**
-<!-- Illustation of sighash, NONE-->
+
+**Sighash NONE**  
+
+Signing an input with the sighash marker set to `NONE` omits all outputs in the sighash which is signed.
+
+![SIGHASH NONE](https://ipfs.io/ipfs/QmaEDF2XYYwMtHzd7jcqRcWbPnMXWFtfbsg9B2TzxAj3su)
+
+We can therefore modify any output after the input signatures are created.
 <!-- Example 3 -->
 ```c++
 //We only need to finalise inputs. Outputs can be modified after signing.
 tx.inputs().push_back(input_0);   //first input
 tx.inputs().push_back(input_1);   //second input
                                   //...nth input
-
-//Construct previous locking script of input_0 & input_1
-script prev_script_0 = script::to_pay_key_hash_pattern(my_address0.hash());
-script prev_script_1 = script::to_pay_key_hash_pattern(my_address1.hash());
-
-//TX signature for input_0
-endorsement sig_0;
-uint8_t input0_index(0u);
-script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x01);
-
-//TX signature for input_1
-endorsement sig_1;
-uint8_t input1_index(1u);
-script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x01);
-
-//Construct unlocking script 0
-operation::list sig_script_0;
-sig_script_0.push_back(operation(sig_0));
-sig_script_0.push_back(operation(to_chunk(pubkey2)));
-script my_unlocking_script_0(sig_script_0);
-
-//Construct unlocking script 1
-operation::list sig_script_1;
-sig_script_1.push_back(operation(sig_1));
-sig_script_1.push_back(operation(to_chunk(pubkey3)));
-script my_unlocking_script_1(sig_script_1);
-
-//Add unlockingscript to TX
-tx.inputs()[0].set_script(my_unlocking_script_0);
-tx.inputs()[1].set_script(my_unlocking_script_1);
-
-//Add outputs
-tx.outputs().push_back(output_0); //first output
-tx.outputs().push_back(output_1); //second output
-                                  //...nth output
-
-//Print out
-std::cout << encode_base16(tx.to_data()) << std::endl;
-```
-
-**Sighash SINGLE**
-<!-- Illustation of sighash, NONE-->
-```c++
-//We sign all inputs and single output with same index
-tx.inputs().push_back(input_0);   //first input
-tx.outputs().push_back(output_0); //first output
-tx.inputs().push_back(input_1);   //second input
-tx.outputs().push_back(output_1); //second output
-                                  //...nth input
-                                  //...nth output
 
 //Construct previous locking script of input_0 & input_1
 script prev_script_0 = script::to_pay_key_hash_pattern(my_address0.hash());
@@ -295,40 +248,103 @@ endorsement sig_1;
 uint8_t input1_index(1u);
 script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x02);
 
-//Construct unlocking script 0
+//Construct unlocking script_0
 operation::list sig_script_0;
 sig_script_0.push_back(operation(sig_0));
-sig_script_0.push_back(operation(to_chunk(pubkey2)));
+sig_script_0.push_back(operation(to_chunk(pubkey0)));
 script my_unlocking_script_0(sig_script_0);
 
-//Construct unlocking script 1
+//Construct unlocking script_1
 operation::list sig_script_1;
 sig_script_1.push_back(operation(sig_1));
-sig_script_1.push_back(operation(to_chunk(pubkey3)));
+sig_script_1.push_back(operation(to_chunk(pubkey1)));
+script my_unlocking_script_1(sig_script_1);
+
+//Add unlockingscript to TX
+tx.inputs()[0].set_script(my_unlocking_script_0);
+tx.inputs()[1].set_script(my_unlocking_script_1);
+
+//NONE: We can modify all outputs after signing
+tx.outputs().push_back(output_0); //first output
+tx.outputs().push_back(output_1); //second output
+                                  //...nth output
+
+//Print out
+std::cout << encode_base16(tx.to_data()) << std::endl;
+```
+
+**Sighash SINGLE**  
+
+A signature with the sighash marker set to `SINGLE` will only endorse or fix a single output with the same index as the input being signed. All other outputs can be modified later.
+
+![SIGHASH SINGLE](https://ipfs.io/ipfs/QmNhHs2y7LhHx6b7xdCN2tJsB3j8WaZNXeuMqJiQjPEcz2)
+
+In the following example, we will sign a transaction with 2 inputs and 2 outputs, but add further outputs later on.
+```c++
+//SIGHASH SINGLE example
+//We sign all inputs and single output with same index
+tx.inputs().push_back(input_0);   //first input
+tx.outputs().push_back(output_0); //first output
+tx.inputs().push_back(input_1);   //second input
+tx.outputs().push_back(output_1); //second output
+                                  //...nth input
+                                  //...nth output
+
+//Construct previous locking script of input_0 & input_1
+script prev_script_0 = script::to_pay_key_hash_pattern(my_address0.hash());
+script prev_script_1 = script::to_pay_key_hash_pattern(my_address1.hash());
+
+//TX signature for input_0
+endorsement sig_0;
+uint8_t input0_index(0u);
+script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x03);
+
+//TX signature for input_1
+endorsement sig_1;
+uint8_t input1_index(1u);
+script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x03);
+
+//Construct unlocking script_0
+operation::list sig_script_0;
+sig_script_0.push_back(operation(sig_0));
+sig_script_0.push_back(operation(to_chunk(pubkey0)));
+script my_unlocking_script_0(sig_script_0);
+
+//Construct unlocking script_1
+operation::list sig_script_1;
+sig_script_1.push_back(operation(sig_1));
+sig_script_1.push_back(operation(to_chunk(pubkey1)));
 script my_unlocking_script_1(sig_script_1);
 
 //Add unlockingscript to TX
 tx.inputs()[0].set_script(my_unlocking_script_0);
 
-//We can still add additional outputs after signing
+//SINGLE: We can add additional outputs after signing
 tx.outputs().push_back(output_2); //third output
-                                  //fourth output
-                                  //nth output
+                                  //...nth output
 
 //Print out
 std::cout << encode_base16(tx.to_data()) << std::endl;
-```
-**Sighash Modifier: ANYONECANPAY**
-Modified with anyone can pay...
+```  
+
+**Sighash Modifier: ANYONECANPAY**  
+
+The sighash modifier `ANYONECANPAY` enables inputs to be modified after signing, and can be combined with the previous sighash markers.
 
 | Sighash Type            | Marker | Description |
 | ------------------------|--------| ------------|
-| ALL + ANYONECANPAY      | 0x81   | Sign single input and outputs, inputs modifiable|
+| ALL + ANYONECANPAY      | 0x81   | Sign single input and all outputs, inputs modifiable |
 | NONE + ANYONECANPAY     | 0x82   | Sign single input, inputs & outputs modifiable |
-| SINGLE + ANYONECANPAY   | 0x83   | Sign single input, and single output, inputs & outputs modifiable |
+| SINGLE + ANYONECANPAY   | 0x83   | Sign single input, and single output, other inputs & outputs modifiable |
 
-<!-- Image of Transaction being signed -->
-**Sighash Example: NONE|ANYONECANPAY**
+The following image illustrates the signature derivation for an input set to `SINGLE|ANYONECANPAY`
+
+![SIGHASH SINGLE|ANYONECANPAY](https://ipfs.io/ipfs/QmZX7tS7tvtHnfKEokMTfq57yeweiEBQh8DHTqfb4fgET2)
+
+**Sighash Example: NONE|ANYONECANPAY**  
+
+We construct a transaction with a `NONE|ANYONECANPAY` input signature below"
+
 ```c++
 //We only sign a single output
 tx.inputs().push_back(input_0);   //first input
@@ -363,6 +379,8 @@ tx.outputs().push_back(output_0); //first output
 tx.outputs().push_back(output_1); //second output
                                   //...nth output
 
-//Print out
+//Print out final transaction
 std::cout << encode_base16(tx.to_data()) << std::endl;
-```
+```  
+[**Previous** -- Addresses & HD Wallets ](https://github.com/libbitcoin/libbitcoin/wiki/Addresses-&-HD-Wallets)  
+[**Return to Index**](https://github.com/libbitcoin/libbitcoin/wiki)

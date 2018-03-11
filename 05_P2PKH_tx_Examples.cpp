@@ -41,7 +41,7 @@ void example_1() {
   input_0.set_previous_output(uxto_tospend_0);
   input_0.set_sequence(0xffffffff);
 
-  //Above can be repeated for other spendable inputs
+  //Additional input objects can be created for additional inputs
 
   //All input objects can then be added to transaction
   tx.inputs().push_back(input_0);       //first input
@@ -64,7 +64,7 @@ void example_1() {
   uint64_t satoshi_amount_0;
   decode_base10(satoshi_amount_0, btc_amount_string_0, btc_decimal_places); //8 decimals = btc_decimal_places
 
-  //Create Output_0 object
+  //Create output_0 object
   output output_0(satoshi_amount_0, locking_script_0);
 
   //Above can be repeated for other outputs
@@ -80,8 +80,8 @@ void example_1() {
   operation::list my_own_p2pkh;
   my_own_p2pkh.push_back(operation(opcode::dup));
   my_own_p2pkh.push_back(operation(opcode::hash160));
-  operation my_operation = operation(to_chunk(my_address1.hash()));
-  my_own_p2pkh.push_back(my_operation); //includes hash length prefix
+  operation op_pubkey = operation(to_chunk(my_address1.hash()));
+  my_own_p2pkh.push_back(op_pubkey); //includes hash length prefix
   my_own_p2pkh.push_back(operation(opcode::equalverify));
   my_own_p2pkh.push_back(operation(opcode::checksig));
 
@@ -123,7 +123,7 @@ void example_2() {
     tx.set_version(version);
 
     //build input 0
-    std::string prev_tx_string_0 = "1eb7195911f69f605cfdc44e05a10835448f875a01c429ccd6a4487621523b0d";
+    std::string prev_tx_string_0 = "7ea970031b28fcc1cef517dfa7d812cb61c409aec37a0463e951a05700d61b73";
     hash_digest prev_tx_hash_0;
     decode_hash(prev_tx_hash_0,prev_tx_string_0);
     //prev uxto index
@@ -134,7 +134,7 @@ void example_2() {
     input_0.set_previous_output(uxto_tospend_0);   //sequence is set in input then...
     input_0.set_sequence(0xffffffff); //standard, no locktime
     //build input 1
-    std::string prev_tx_string_1 = "1eb7195911f69f605cfdc44e05a10835448f875a01c429ccd6a4487621523b0d";
+    std::string prev_tx_string_1 = "32d070ed7d387b9db02bf35f3ba1c0ee61837c2226fd5cbf0c913525a9be869d";
     hash_digest prev_tx_hash_1;
     decode_hash(prev_tx_hash_1,prev_tx_string_1);
     //prev uxto index
@@ -178,20 +178,20 @@ void example_2() {
     //TX signature for input_0
     endorsement sig_0;
     uint8_t input0_index(0u);
-    script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x00);
+    script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x01);
 
     //TX signature for input_1
     endorsement sig_1;
     uint8_t input1_index(1u);
-    script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x00);
+    script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x01);
 
-    //Construct unlocking script 0
+    //Construct unlocking script_0
     operation::list sig_script_0;
     sig_script_0.push_back(operation(sig_0));
     sig_script_0.push_back(operation(to_chunk(pubkey0)));
     script my_unlocking_script_0(sig_script_0);
 
-    //Construct unlocking script 1
+    //Construct unlocking script_1
     operation::list sig_script_1;
     sig_script_1.push_back(operation(sig_1));
     sig_script_1.push_back(operation(to_chunk(pubkey1)));
@@ -200,6 +200,8 @@ void example_2() {
     //Add unlockingscript to TX
     tx.inputs()[0].set_script(my_unlocking_script_0);
     tx.inputs()[1].set_script(my_unlocking_script_1);
+
+    //SINGLE: We cannot modify TX after signing
 
     //Print out
     std::cout << encode_base16(tx.to_data()) << std::endl;
@@ -289,20 +291,20 @@ void example_3() {
   //TX signature for input_0
   endorsement sig_0;
   uint8_t input0_index(0u);
-  script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x01);
+  script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x02);
 
   //TX signature for input_1
   endorsement sig_1;
   uint8_t input1_index(1u);
-  script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x01);
+  script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x02);
 
-  //Construct unlocking script 0
+  //Construct unlocking script_0
   operation::list sig_script_0;
   sig_script_0.push_back(operation(sig_0));
   sig_script_0.push_back(operation(to_chunk(pubkey0)));
   script my_unlocking_script_0(sig_script_0);
 
-  //Construct unlocking script 1
+  //Construct unlocking script_1
   operation::list sig_script_1;
   sig_script_1.push_back(operation(sig_1));
   sig_script_1.push_back(operation(to_chunk(pubkey1)));
@@ -312,7 +314,7 @@ void example_3() {
   tx.inputs()[0].set_script(my_unlocking_script_0);
   tx.inputs()[1].set_script(my_unlocking_script_1);
 
-  //Add outputs
+  //NONE: We can modify all outputs after signing
   tx.outputs().push_back(output_0); //first output
   tx.outputs().push_back(output_1); //second output
                                     //...nth output
@@ -414,20 +416,20 @@ void example_4() {
   //TX signature for input_0
   endorsement sig_0;
   uint8_t input0_index(0u);
-  script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x02);
+  script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x03);
 
   //TX signature for input_1
   endorsement sig_1;
   uint8_t input1_index(1u);
-  script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x02);
+  script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x03);
 
-  //Construct unlocking script 0
+  //Construct unlocking script_0
   operation::list sig_script_0;
   sig_script_0.push_back(operation(sig_0));
   sig_script_0.push_back(operation(to_chunk(pubkey0)));
   script my_unlocking_script_0(sig_script_0);
 
-  //Construct unlocking script 1
+  //Construct unlocking script_1
   operation::list sig_script_1;
   sig_script_1.push_back(operation(sig_1));
   sig_script_1.push_back(operation(to_chunk(pubkey1)));
@@ -436,8 +438,8 @@ void example_4() {
   //Add unlockingscript to TX
   tx.inputs()[0].set_script(my_unlocking_script_0);
 
-  //We can still add additional outputs after signing
-  tx.outputs().push_back(output_2); //fourth output
+  //SINGLE: We can add additional outputs after signing
+  tx.outputs().push_back(output_2); //third output
                                     //...nth output
 
   //Print out
@@ -523,7 +525,7 @@ void example_5() {
   //TX signature for input_1
   endorsement sig_1;
   uint8_t input1_index(1u);
-  script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x81);
+  script::create_endorsement(sig_1, my_secret1, prev_script_1, tx, input1_index, 0x82);
   //Construct unlocking script 1
   operation::list sig_script_1;
   sig_script_1.push_back(operation(sig_1));
@@ -535,7 +537,7 @@ void example_5() {
   //****************************************//
 
   //We only sign a single output
-  tx.inputs().push_back(input_0);   //first input
+  tx.inputs().push_back(input_0);
 
   //Construct previous locking script of input_0 & input_1
   script prev_script_0 = script::to_pay_key_hash_pattern(my_address0.hash());
@@ -543,9 +545,9 @@ void example_5() {
   //TX signature for input_0
   endorsement sig_0;
   uint8_t input0_index(0u);
-  script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x81);
+  script::create_endorsement(sig_0, my_secret0, prev_script_0, tx, input0_index, 0x82);
 
-  //Construct unlocking script 0
+  //Construct unlocking script_0
   operation::list sig_script_0;
   sig_script_0.push_back(operation(sig_0));
   sig_script_0.push_back(operation(to_chunk(pubkey2)));
@@ -579,9 +581,9 @@ int main() {
   // example_1();
   // std::cout << "\n";
   //
-  // std::cout << "Example 2: " << "\n";
-  // example_2();
-  // std::cout << "\n";
+  std::cout << "Example 2: " << "\n";
+  example_2();
+  std::cout << "\n";
   //
   // std::cout << "Example 3: " << "\n";
   // example_3();
@@ -591,9 +593,9 @@ int main() {
   // example_4();
   // std::cout << "\n";
 
-  std::cout << "Example 5: " << "\n";
-  example_5();
-  std::cout << "\n";
+  // std::cout << "Example 5: " << "\n";
+  // example_5();
+  // std::cout << "\n";
 
   return 0;
 
