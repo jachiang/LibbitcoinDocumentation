@@ -14,7 +14,8 @@ void example1() {
   auto my_secret = to_array<ec_secret_size>(my_entropy);
 
   //Not all possible 256bits are member of Fp
-  std::cout << verify(my_secret);
+  std::cout << encode_base16(my_secret) << std::endl;
+  std::cout << verify(my_secret) << std::endl;
 }
 
 void example2() {
