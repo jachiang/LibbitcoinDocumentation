@@ -3,8 +3,8 @@
 ## Sending to P2WSH
 Sending a transaction to a Segwit Pay-to-Witness-Script-Hash (P2WPKH) destination requires the construction of the following scriptPubKey:
 
-| TX Element | Script/Serialization |
-| -------------|--------| ------------|
+| TX Element 	 | Script/Serialization 									  |
+| -------------|------------------------------------------|
 | ScriptPubKey | `zero` `[32-byte sha256(WitnessScript)]` |
 
 The WitnessScript is the redeemscript for the native P2WSH output.

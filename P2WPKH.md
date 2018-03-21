@@ -3,8 +3,8 @@
 ## Sending to P2WPKH
 Sending a transaction to a Segwit Pay-to-Witness-Public-Key-Hash (P2WPKH) destination requires the construction of the following scriptPubKey:
 
-| TX Element | Script/Serialization |
-| -------------|--------| ------------|
+| TX Element 	 | Script/Serialization 									 |
+| -------------|-----------------------------------------|
 | ScriptPubKey | `zero` ``[20-byte hash160(PublicKey)]`` |
 
 We can construct such a P2WPKH scriptPubKey by populating a `operation::list` object with the respective `operations`.

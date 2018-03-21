@@ -3,9 +3,10 @@
 ## Sending to P2SH(P2WPKH)
 Sending a transaction to a Pay-to-Witness-Public-Key-Hash (P2WPKH) address wrapped in a P2SH address requires the construction of the following scriptPubKey:
 
-| TX Element | Script/Serialization |
-| -------------|--------| ------------|
+| TX Element 	 | Script/Serialization 									                  |
+| -------------|----------------------------------------------------------|
 | ScriptPubKey | `HASH160` `[20-byte hash160(P2WPKH(PubKeyHash))]` `EQUAL`|
+
 The `redeemscript` of the P2SH `ScriptPubKey` shown above is the `P2WPKH(PubKeyHash)` script. Therefore, the construction of a `P2SH(P2WPKH)` output mirrors that of a regular `P2SH` example.
 
 ```c++
