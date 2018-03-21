@@ -39,9 +39,9 @@ decode_base10(satoshi_amount, btc_amount_string, btc_decimal_places);
 output p2sh_p2wpkh_output(satoshi_amount, script_pubkey);
 ```
 
-If the input(s) are non-segwit, rest of the transaction is built and signed according to the documentation sections [building transactions](https://github.com/libbitcoin/libbitcoin/wiki) and [sighash](https://github.com/libbitcoin/libbitcoin/wiki).
+If the input(s) are non-segwit, rest of the transaction is built and signed according to the documentation sections [building transactions](https://github.com/libbitcoin/libbitcoin/wiki/Building-Transactions) and [sigHash](https://github.com/libbitcoin/libbitcoin/wiki/Sighash-&-TX-Signing).
 
-You can find the complete P2SH(P2WSH) example script [here](https://github.com/libbitcoin/libbitcoin/wiki).
+You can find the complete P2SH(P2WSH) example script [here](https://github.com/libbitcoin/libbitcoin/wiki/Segwit-TX-Examples).
 
 ## Sending from P2SH(P2WSH)
 
@@ -215,4 +215,4 @@ BX tx-decode -f json 01000000000101708256c5896fb3f00ef37601f8e30c5b460dbcd1fca1c
 }
 ```
 
-You can find the complete P2SH(P2WSH) example script [here](https://github.com/libbitcoin/libbitcoin/wiki).
+You can find the complete P2SH(P2WSH) example script [here](https://github.com/libbitcoin/libbitcoin/wiki/Segwit-TX-Examples).
