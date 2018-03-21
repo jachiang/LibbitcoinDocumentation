@@ -1,5 +1,9 @@
 # Segwit TX Examples
 
+All examples from the segwit transaction documentation chapters are shown here in full.
+WIP: Note that these examples will soon be moved to the unit tests to ensure maintainability.
+References will be updated accordingly.
+
 **P2WPKH**
 * example_to_p2wpkh();
 * example_from_p2wpkh();  

@@ -7,44 +7,45 @@ Sending a transaction to a Pay-to-Witness-Public-Key-Hash (P2WPKH) address wrapp
 | -------------|----------------------------------------------------------|
 | ScriptPubKey | `HASH160` `[20-byte hash160(P2WPKH(PubKeyHash))]` `EQUAL`|
 
-The `redeemscript` of the P2SH `ScriptPubKey` shown above is the `P2WPKH(PubKeyHash)` script. Therefore, the construction of a `P2SH(P2WPKH)` output mirrors that of a regular `P2SH` example.
+The construction of a `P2SH(P2WPKH)` output mirrors that of a regular `P2SH` scriptPubKey. The `redeemscript` of the P2SH scriptPubKey shown above is the `P2WPKH(PubKeyHash)` script.
 
 ```c++
-//P2SH(P2WPKH) Output
-//P2SH Redeemscript = P2WPKH(PubKeyHash)
-//0 [20-byte publicKeyHash]
+// P2SH(P2WPKH) Output
+// P2SH Redeemscript = P2WPKH(PubKeyHash)
+// 0 [20-byte publicKeyHash]
 short_hash keyhash_dest = bitcoin_short_hash(pubkey_segwit);
 operation::list p2wpkh_oplist;
 p2wpkh_oplist.push_back(operation(opcode::push_size_0));
 p2wpkh_oplist.push_back(operation(to_chunk(keyhash_dest)));
 script p2wpkh_redeemscript(p2wpkh_oplist);
 
-//P2SH ScriptPubKey:
-//hash160 [20-byte hash160(redeemscript)] equal
+// P2SH ScriptPubKey:
+// hash160 [20-byte hash160(redeemscript)] equal
 short_hash redeemscript_hash = bitcoin_short_hash(p2wpkh_redeemscript.to_data(false));
 script script_pubkey = script::to_pay_script_hash_pattern(redeemscript_hash);
 
-//Build output:
+// Build output:
 std::string btc_amount_string = "1.298";
 uint64_t satoshi_amount;
 decode_base10(satoshi_amount, btc_amount_string, btc_decimal_places);
 output p2sh_p2wpkh_output(satoshi_amount, script_pubkey);
 ```
-The rest of the transaction is built and signed in the same fashion as described in [building transactions](https://github.com/libbitcoin/libbitcoin/wiki) and [sighash](https://github.com/libbitcoin/libbitcoin/wiki) documentation sections if the input(s) are non-segwit.
+If the input(s) are non-segwit, rest of the transaction is built and signed according to the documentation sections [building transactions](https://github.com/libbitcoin/libbitcoin/wiki) and [sighash](https://github.com/libbitcoin/libbitcoin/wiki).
 
-You can find the complete P2SH(P2WPKH) example script [here](https://github.com/libbitcoin/libbitcoin/wiki).
+The complete P2SH(P2WPKH) example script can be found [here](https://github.com/libbitcoin/libbitcoin/wiki).
 
-## Sending from P2SH(P2WPKH)
-Spending a P2WPKH output requires adherence to the following transaction scheme.
+## Sending from P2SH(P2WPKH)  
 
-| TX Element   | Script/Serialization |
+Spending a P2SH(P2WPKH) output requires constructing the transaction according to the following scheme.
+
+| TX Element   | Script/Serialization                                                    |
 | -------------|-------------------------------------------------------------------------|
 | ScriptPubKey | `According to destination address`                                      |
 | ScriptSig    | `[zero <20-byte publicKeyHash>]`                                        |
 | ScriptCode   | `DUP` `HASH160` `[20-byte hash160(PublicKey)]` `EQUALVERIFY` `CHECKSIG` |
 | Witness      | `[Signature]` `[PublicKey]`                                             |
 
-Compared to spending a native P2SH output, the ScriptSig is not left empty in a P2SH(P2WPKH) transaction, but is instead populated with a single data push representing the serialised P2SH redeemscript (specifically, a P2WPKH script).
+Compared to spending a native P2WPKH output, the ScriptSig is not left empty in a P2SH(P2WPKH) transaction, but is instead populated with a single data push representing the serialised P2SH redeemscript (specifically, a P2WPKH script).
 
 We construct the `input` object for our `P2SH(P2WPKH)` spending example.
 
@@ -53,15 +54,17 @@ We construct the `input` object for our `P2SH(P2WPKH)` spending example.
 ```
 
 ```c++
-//P2SH(P2WPKH) Input
-//Previous TX hash
+// P2SH(P2WPKH) Input
+// Previous TX hash
 std::string prev_tx_string = "8231a9027eca6f2bd7bdf712cd2368f0b6e8dd6005b6b348078938042178ffed";
 hash_digest prev_tx_hash;
 decode_hash(prev_tx_hash,prev_tx_string);
-//Previous UXTO index:
+
+// Previous UXTO index:
 uint32_t index = 0;
 output_point uxto_tospend(prev_tx_hash, index);
-//Build P2SH(P2WPKH) input object
+
+// Build P2SH(P2WPKH) input object
 input p2sh_p2wpkh_input;
 p2sh_p2wpkh_input.set_previous_output(uxto_tospend);
 p2sh_p2wpkh_input.set_sequence(0xffffffff);
@@ -76,31 +79,32 @@ tx.outputs().push_back(p2pkh_output);
 ### Signing a P2SH(P2WPKH) transaction
 [BIP143](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki) describes a segwit-specific sighash generation algorithm for signatures evaluated by `CHECKSIG`, `CHECKSIGVERIFY`, `CHECKMULTISIG`, `CHECKMULTISIGVERIFY`.  
 
-In particular, a ScriptCode and the previous input amount are required for the signature algorithm:
+In particular, a ScriptCode and the previous input amount are required for the signature algorithm. The ScriptCode for spending a P2WPKH is simply a `P2PKH(pubKeyHash)` script.
 
 ```c++
 //Create Segwit Signature
+
 //ScriptCode:
 script script_code = script::to_pay_key_hash_pattern(
     bitcoin_short_hash(pubkey_segwit));
+
 //Previous Input Amount:
 uint8_t input_index(0u);
 std::string btc_amount_string_in = "1.298";
 uint64_t satoshi_amount_in;
 decode_base10(satoshi_amount_in, btc_amount_string_in, btc_decimal_places);
+
 //Segwit Endorsement: Pass script_version::zero & prev input amount
 endorsement sig;
 script::create_endorsement(sig, my_secret_segwit, script_code, tx, input_index,
     0x01, script_version::zero, satoshi_amount_in); //turn on witness
 ```
->The `script::create_endorsement` method will serialise the sighash according to the `script_version` argument. For segwit inputs, this argument will be set to `script_version::zero` in order for the correct sighash algorithm to be applied.
-
-The ScriptCode for signing a P2WPKH transaction is the `P2PKH(pubKeyHash)` script.
+The `script::create_endorsement` method will serialise the sighash according to the `script_version` argument. For segwit inputs, this argument will be set to `script_version::zero` in order for the segwit specific sighash algorithm to be applied.
 
 ### P2SH(P2WPKH) ScriptSig
 The ScriptSig for spending the P2SH(P2WPKH) will be the redeemscript, but does not include any signatures or witnesses.
 
-The ScriptSig is `[zero [20-byte publicKeyHash]]` as a single data push.
+The redeemscript is the P2WPKH script `[zero <20-byte publicKeyHash>]` as a single data push.
 
 ```c++
 // ScriptSig:
@@ -118,9 +122,8 @@ tx.inputs()[0].set_script(p2sh_redeemscript_wrapper);
 ```
 
 ### P2SH(P2WPKH) Witness
-The witness of a P2SH(P2WPKH) input is identical to that of a native P2WPKH input.
 
-We now continue our example with the construction of the `witness` object:
+The witness of a P2SH(P2WPKH) input is identical to that of a native P2WPKH input.  
 
 ```c++
 // Witness:
@@ -131,9 +134,11 @@ witness_stack.push_back(to_chunk(pubkey_segwit));
 witness p2wpkh_witness(witness_stack);
 tx.inputs()[0].set_witness(p2wpkh_witness);
 ```
->The serialised encoding of the witness may appear similar to Bitcoin scripts, but only consists of serialised data chunk pushes, each with a single-byte length prefix.
+Note that the `witness` class is constructed from a `data_stack`, which in turn is an alias of the `vector<data_chunk>` class. The `witness` object produces a serialised format which prepends a single-byte length prefix to each `data_chunk` in its stack.
 
-This can be observed in the witness from our example, which is serialised as the following:
+The serialised encoding of the witness may appear similar to Bitcoin scripts, but differs in that it only consists of serialised data pushes with the aforementioned length prefixes.
+
+This can be observed in the serialised witness from our example:
 
 ```c++
 // Number of following witness elements for first input
@@ -148,7 +153,7 @@ This can be observed in the witness from our example, which is serialised as the
 026ccfb8061f235cc110697c0bfb3afb99d82c886672f6b9b5393b25a434c0cbf3
 ```
 
----
+### Serialised P2SH(P2WPKH) Transaction
 
 Finally, we can express our P2SH(P2WPKH) spending transaction in the following serialised form:
 

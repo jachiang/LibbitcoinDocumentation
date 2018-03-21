@@ -28,7 +28,7 @@ If the input(s) are non-segwit, rest of the transaction is built and signed acco
 You can find the complete P2WPKH example script [here](https://github.com/libbitcoin/libbitcoin/wiki).
 
 ## Sending from P2WPKH
-Spending a P2WPKH output requires constructing the transaction according to the following transaction scheme.
+Spending a P2WPKH output requires constructing the transaction according to the following scheme.
 
 | TX Element 	 | Script/Serialization 																									 |
 | -------------|-------------------------------------------------------------------------|
