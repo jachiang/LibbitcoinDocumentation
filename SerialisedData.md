@@ -52,7 +52,7 @@ Other fixed-length classes in Libbitcoin such as private keys, signatures and ha
 
 There are also many data formats in Bitcoin which can vary in length. In such a case, the Libbitcoin data chunk type comes is used.
 
-For example, there are a number of valid entropy sizes which can be represented by a [mnemonic word list](https://github.com/libbitcoin/libbitcoin/wiki/Addresses-&-HD-Wallets) .
+For example, there are a number of valid entropy sizes which can be represented by a [mnemonic word list](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) .
 
 **Example: Valid Entropy Sizes for Mnemonic Word Lists**
 ```
