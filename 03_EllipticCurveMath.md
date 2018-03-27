@@ -14,6 +14,10 @@ Let us start with scalar values. A Bitcoin private key is simply a secret scalar
 
 A private key is randomly generated to prevent any external party from reconstructing it systematically.
 ```c++
+#include <bitcoin/bitcoin.hpp>
+#include <string.h>
+#include <iostream>
+
 //Namespace
 using namespace bc;
 ```

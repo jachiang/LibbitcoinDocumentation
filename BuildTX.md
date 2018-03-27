@@ -34,6 +34,7 @@ Constructing a Libbitcoin transaction can be as simple as populating a `chain::t
 ```c++
 #include <bitcoin/bitcoin.hpp>
 #include <string.h>
+#include <iostream>
 
 //Namespace
 using namespace bc;

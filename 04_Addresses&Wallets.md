@@ -17,6 +17,10 @@ The serialised format is encoded in Base58. Note that the public key is hashed i
 
 Let us create a Bitcoin address in Libbitcoin:
 ```c++
+#include <bitcoin/bitcoin.hpp>
+#include <string.h>
+#include <iostream>
+
 //Namespace
 using namespace bc;
 using namespace wallet;

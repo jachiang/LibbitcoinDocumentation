@@ -173,7 +173,7 @@ void example4() {
   //Create an optional secret passphrase
   std::string my_passphrase = "my secret passphrase";
   //Create 512bit seed
-  auto hd_seed = decode_mnemonic(my_word_list, my_passphrase);
+  auto hd_seed = decode_mnemonic(my_word_list); //2nd argument: my_passphrase
   data_chunk seed_chunk(to_chunk(hd_seed));
 
 
