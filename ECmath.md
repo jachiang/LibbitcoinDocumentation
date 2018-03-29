@@ -6,9 +6,7 @@ Bitcoin uses the secp256k1 elliptic curve `y^2 = x^3 + 7` over the finite field 
 
 > p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
 
-*(Note that modulo prime number `p` is slightly less than the maximum value an unsigned 256 bit integer can hold.)*
-
-All subsequent operations involve either scalar members of the finite field `Fp` or valid points on the `secp256k1` curve.
+Note that modulo prime number `p` is slightly less than the maximum value an unsigned 256 bit integer can hold. All subsequent operations involve either scalar members of the finite field `Fp` or valid points on the `secp256k1` curve.
 
 ## Scalar Operations in Finite Field Fp
 
