@@ -1,3 +1,24 @@
+# Examples: Elliptic Curve Operations
+
+All examples from the EC operations documentation chapter are shown here in full. The specific examples referenced in the subsections are wrapped in the functions listed below.
+
+**Create and Verify Private Key**
+* create_verify_private_key();
+
+**Commutative EC Operations**
+* ec_operations();
+
+**Decompress EC Point**
+* decompress_point();
+
+**EC point from Generator**
+* create_public_key();
+
+**Libbitcoin API:** Version 3.
+
+Script below is ready-to-compile: `g++ -std=c++11 -o ec_math ec_math_examples.cpp $(pkg-config --cflags libbitcoin --libs libbitcoin)`
+
+```c++
 #include <bitcoin/bitcoin.hpp>
 #include <string.h>
 #include <iostream>
@@ -95,3 +116,4 @@ int main() {
   return 0;
 
 }
+```

@@ -1,3 +1,15 @@
+# Examples: ECDSA and DER Signatures
+
+All examples from the ECDSA and DER signatures documentation chapter are shown here in full. The specific examples referenced in the subsections are wrapped in the functions listed below.
+
+**ECDSA, DER signatures**
+* ecdsa_der_signing();
+
+**Libbitcoin API:** Version 3.
+
+Script below is ready-to-compile: `g++ -std=c++11 -o ecdsa_der ecdsa_der_examples.cpp $(pkg-config --cflags libbitcoin --libs libbitcoin)`
+
+```c++
 #include <bitcoin/bitcoin.hpp>
 #include <string.h>
 #include <iostream>
@@ -55,3 +67,4 @@ int main() {
   return 0;
 
 }
+```

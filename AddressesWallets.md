@@ -21,7 +21,7 @@ Let us create a Bitcoin address in Libbitcoin:
 #include <string.h>
 #include <iostream>
 
-//Namespace
+// Namespace
 using namespace bc;
 using namespace wallet;
 ```

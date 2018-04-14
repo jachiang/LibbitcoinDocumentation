@@ -1,8 +1,8 @@
-# DER Signatures
+# ECDSA and DER Signatures
 
-Signing a transaction in Bitcoin means endorsing a serialised representation of the transaction called [sighash](https://github.com/libbitcoin/libbitcoin/wiki/Sighash-&-TX-Signing) with an [ECSDA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) signature.
+Signing a transaction in Bitcoin means endorsing a serialised representation of the transaction called [sighash](https://github.com/libbitcoin/libbitcoin/wiki/Sighash-&-TX-Signing) with an [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) signature.
 
-The signature itself is composed of two scalar values `r,s`.
+The ECDSA signature itself is composed of two scalar values `r,s`.
 
 The Libbitcoin type signature  is a 64-byte, byte array container which holds the two 32-byte values. We will sign an arbitrary message hash in the following example.
 
@@ -27,9 +27,9 @@ sign(my_signature, my_secret, my_hash);
 // Verify Signature.
 std::cout << verify_signature(my_pubkey, my_hash, my_signature) << std::endl;
 ```
-**Deterministic ECSDA Signatures**  
+**Deterministic ECDSA Signatures**  
 
-Signing in Libbitcoin results in deterministic ECSDA signatures, which means that the "random" `k` value used to derive the signature is not actually random, but derived deterministically from both the message and private key.
+Signing in Libbitcoin results in deterministic ECDSA signatures, which means that the "random" `k` value used to derive the signature is not actually random, but derived deterministically from both the message and private key.
 
 This means that a signature generated in Libbitcoin will always be the same for a given message and private key.
 
@@ -50,11 +50,11 @@ In Libbitcoin, the serialised DER signature is represented by the `der_signature
 
 <!-- Example (Part 2) -->
 ```c++
-// Format signature (r,s) as DER
+// Format signature (r,s) as DER.
 der_signature my_der_signature;
 encode_signature(my_der_signature, my_signature);
 
-// DER serialisation
+// DER serialisation.
 std::cout << encode_base16(my_der_signature) << std::endl;
 ```
 **Strict DER Signatures (BIP66)**  
@@ -66,8 +66,8 @@ We use a simple parser function to ensure a DER signature adheres to strict DER 
 
 <!-- Example (Part 3) -->
 ```c++
-// Parse r,s values from DER formatted signature
-// Strict enforcement of DER = true
+// Parse r,s values from DER formatted signature.
+// Strict enforcement of DER = true.
 std::cout << parse_signature(my_signature, my_der_signature, true)
     << std::endl;
 ```

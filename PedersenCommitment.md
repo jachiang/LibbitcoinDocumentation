@@ -1,6 +1,8 @@
 # Pedersen Commitments in EC Form
 
-Using [EC operations](https://github.com/libbitcoin/libbitcoin/wiki), we can also generate Pedersen commitments in EC form, which can be expressed as the following:
+*Note: This chapter involves the `ec_sum()` method, which is only available in the upcoming Libbitcoin version 4 library (currently master branch).*
+
+Using [EC operations](https://github.com/libbitcoin/libbitcoin/wiki/Elliptic-Curve-Operations), we can also generate Pedersen commitments in EC form, which can be expressed as the following:
 
 > C =  r * H + a * G
 
@@ -17,15 +19,8 @@ If `q` were known, it could be factored out of `H`:
 
 In this case, multiple possible values of `r` and `a` can be determined for a given commitment `C`. Therefore, `r` and `a` can be changed after the commitment has been made, rendering the commitment non-binding.
 
-The follow example demonstrates generating a pedersen commitment in EC form in Libbitcoin.
-```c++
-#include <bitcoin/bitcoin.hpp>
-#include <string.h>
-#include <iostream>
+The follow example demonstrates generating a pedersen commitment in EC form in Libbitcoin. The full ready-to-compile code examples from this chapter can be found [here](www.github.com/).
 
-// Namespace
-using namespace bc;
-```
 ```c++
 // Example value for point h:
 // h = q * G with unknown q.
@@ -58,7 +53,7 @@ point_list commitment_point_list = {left_point, right_point};
 ec_compressed commitment_point;
 ec_sum(commitment_point, commitment_point_list);
 
-// Commitment point C:
+// Commitment point C.
 std::cout << encode_base16(commitment_point) << std::endl;
 ```
 
@@ -68,7 +63,7 @@ Homomorphism means that algebraic operations on commitments will also hold true 
 
 > C( r1 , a1 ) + C( r2 , a2 ) = C( r1 + r2 , a1 + a2 )
 
-This is equality is demonstrated in the example below:
+This equality is demonstrated in the example below:
 
 ```c++
 // Create a second commitment C(r2, a2).
@@ -102,15 +97,19 @@ ec_secret scalar_sum_r(scalar_r);
 ec_add(scalar_sum_r, scalar_r2);
 ec_secret scalar_sum_a(committed_a);
 ec_add(scalar_sum_a, committed_a2);
+
 ec_compressed left_point_(point_h);
 ec_multiply(left_point_, scalar_sum_r);
+
 ec_compressed right_point_;
 secret_to_public(right_point_, scalar_sum_a);
+
 point_list commitment_list_ = {left_point_, right_point_};
 ec_compressed commitment_sum_;
 ec_sum(commitment_sum_, commitment_list_);
 
 // Homomorphism holds.
-// C + C2 = C(r + r1, a + a1)
+// C + C2 = C(r + r2, a + a2)
 std::cout << (commitment_sum == commitment_sum_) << std::endl;
 ```
+The full ready-to-compile code examples from this chapter can be found [here](www.github.com/).

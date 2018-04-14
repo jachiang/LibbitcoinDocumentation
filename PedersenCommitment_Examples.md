@@ -1,3 +1,20 @@
+# Examples: Pedersen Commitment
+
+All examples from the pedersen commitment documentation chapter are shown here in full. The specific examples referenced in the subsections are wrapped in the functions listed below.
+
+**Pedersen Commitments**
+* create_pedersen_commitments();
+
+**Helper Functions**
+* generate_h_candidate()
+* point_h_generation()
+
+**Libbitcoin API**: Libbitcoin version 4 or higher (current master branch)
+
+Compile with:
+`g++ -std=c++11 -o script_verify script_verify_examples.cpp $(pkg-config --cflags libbitcoin --libs libbitcoin)`
+
+```c++
 #include <bitcoin/bitcoin.hpp>
 #include <string.h>
 #include <iostream>
@@ -5,7 +22,7 @@
 
 using namespace bc;
 
-ec_compressed generate_h_candidate() {
+ec_compressed generate_h() {
 
     // Generate 32bytes of my_entropy.
     data_chunk my_entropy(32u); //256bits
@@ -32,7 +49,7 @@ void point_h_generation() {
     bool test = false;
 
     while(test == false) {
-        h_candidate = generate_h_candidate();
+        h_candidate = generate_h();
         test = verify(h_candidate);
     }
 
@@ -42,7 +59,7 @@ void point_h_generation() {
 }
 
 
-void create_pedersen_commitments() {
+void example() {
 
     //********** Part 1 **********
 
@@ -137,8 +154,9 @@ int main() {
 
   point_h_generation();
 
-  create_pedersen_commitments();
+  example();
 
   return 0;
 
 }
+```

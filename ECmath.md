@@ -113,13 +113,14 @@ auto gen_point = base16_literal(
 
 // Manually generating the public key.
 ec_compressed my_pubkey_compressed(gen_point);
-ec_multiply(my_pubkey_compressed, my_secret);
+ec_multiply(my_pubkey_compressed,my_secret);
 
 // Better: Using helper fct to generate the public key.
-ec_compressed my_pubkey2;
-secret_to_public(my_pubkey2, my_secret);
+ec_compressed my_alternative_pubkey_compressed;
+secret_to_public(my_alternative_pubkey_compressed, my_secret);
 
-std::cout << (my_pubkey_compressed == my_pubkey2) << std::endl;
+std::cout << (my_pubkey_compressed == my_alternative_pubkey_compressed)
+          << std::endl;
 ```
 
 **Associativity of EC operators**  
